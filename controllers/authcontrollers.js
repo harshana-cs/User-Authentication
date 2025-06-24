@@ -30,8 +30,6 @@ async function signup(req, res) {
   }
 }
 
-
-
 function login(req, res) {
   const { username, password } = req.body;
   const users = getUsers();
