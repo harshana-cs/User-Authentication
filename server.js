@@ -1,14 +1,14 @@
 const dotenv = require('dotenv');
-dotenv.config(); // ⬅️ This must come before anything that uses process.env
+dotenv.config(); 
 
 const express = require('express');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth');
-
-const app = express();
-
 // ✅ Connect to MongoDB
 connectDB();
+const app = express();
+
+
 
 app.use(express.json());
 app.use('/api/auth', authRoutes);

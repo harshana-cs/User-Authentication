@@ -6,9 +6,9 @@ async function getUsers() {
 }
 
 // Save new user (create)
-async function saveUser(userData) {
+async function saveUsers(userData) {
   const user = new User(userData);
   return await user.save();
 }
 
-module.exports = { getUsers, saveUser };
+module.exports = { getUsers, saveUsers };

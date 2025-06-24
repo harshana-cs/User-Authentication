@@ -3,19 +3,35 @@ const { getUsers, saveUsers } = require('../utils/userStorage');
 const jwt = require('jsonwebtoken');
 const SECRET = 'your_jwt_secret';
 
+
+const User = require('../models/User');
+
 async function signup(req, res) {
-  const { username, password } = req.body;
-  const users = await getUsers();
+  try {
+    const { username, password } = req.body;
 
-  if (users.find(user => user.username === username)) {
-    return res.status(400).json({ msg: 'User already exists' });
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ msg: 'User already exists' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = new User({ username, password: hashedPassword });
+
+    const savedUser = await newUser.save();
+
+    console.log('✅ User saved:', savedUser);
+
+    res.status(201).json({ msg: 'User registered successfully' });
+  } catch (error) {
+    console.error('Signup error:', error);
+    res.status(500).json({ msg: 'Server error' });
   }
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-  await saveUser({ username, password: hashedPassword });
-
-  res.status(201).json({ msg: 'User created successfully' });
 }
+
+
+
 function login(req, res) {
   const { username, password } = req.body;
   const users = getUsers();
