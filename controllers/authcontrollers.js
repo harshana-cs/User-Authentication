@@ -20,7 +20,7 @@ function signup(req, res) {
 function login(req, res) {
   const { username, password } = req.body;
   const users = getUsers();
-
+  
   const user = users.find(u => u.username === username);
   if (!user) {
     return res.status(404).json({ msg: 'User not found' });
