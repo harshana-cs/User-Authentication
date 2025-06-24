@@ -1,5 +1,8 @@
+const bcrypt = require('bcryptjs');
+const { getUsers, saveUsers } = require('../utils/userStorage');
 const jwt = require('jsonwebtoken');
-const SECRET = 'your_jwt_secret'; // Use .env in real projects
+const SECRET = 'your_jwt_secret';
+
 function signup(req, res) {
   const { username, password } = req.body;
   const users = getUsers();
@@ -14,7 +17,6 @@ function signup(req, res) {
   saveUsers(users);
   res.status(201).json({ msg: 'User registered successfully' });
 }
-
 function login(req, res) {
   const { username, password } = req.body;
   const users = getUsers();
@@ -30,7 +32,19 @@ function login(req, res) {
   }
 
   const token = jwt.sign({ username: user.username }, SECRET, { expiresIn: '1h' });
+
   res.json({ msg: 'Login successful', token });
 }
-
-module.exports = { signup, login };
+function logout(req,res){
+  const token = req.headers['authorization'];
+  if (!token) { 
+    return res.status(401).json({ msg: 'No token provided' });
+  }     
+  jwt.verify(token, SECRET, (err) => {
+    if (err) {
+      return res.status(401).json({ msg: 'Invalid token' });
+    }
+    res.json({ msg: 'Logout successful' });
+  });
+}
+module.exports = { signup, login, logout };
