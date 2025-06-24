@@ -1,21 +1,22 @@
-const bcrypt = require('bcryptjs');
-const { getUsers, saveUsers } = require('../utils/userStorage');
 const jwt = require('jsonwebtoken');
-const SECRET = 'your_jwt_secret';
+const SECRET = 'your_jwt_secret'; // Use .env in real projects
 
-function signup(req, res) {
+function login(req, res) {
   const { username, password } = req.body;
   const users = getUsers();
 
-  if (users.find(u => u.username === username)) {
-    return res.status(400).json({ msg: 'User already exists' });
+  const user = users.find(u => u.username === username);
+  if (!user) {
+    return res.status(404).json({ msg: 'User not found' });
   }
 
-  const hashedPassword = bcrypt.hashSync(password, 10);
-  users.push({ username, password: hashedPassword });
+  const isMatch = bcrypt.compareSync(password, user.password);
+  if (!isMatch) {
+    return res.status(401).json({ msg: 'Invalid password' });
+  }
 
-  saveUsers(users);
-  res.status(201).json({ msg: 'User registered successfully' });
+  const token = jwt.sign({ username: user.username }, SECRET, { expiresIn: '1h' });
+  res.json({ msg: 'Login successful', token });
 }
 
-module.exports = { signup };
+module.exports = { signup, login };
