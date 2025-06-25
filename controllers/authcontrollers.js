@@ -30,25 +30,30 @@ async function signup(req, res) {
   }
 }
 
-function login(req, res) {
-  const { username, password } = req.body;
-  const users = getUsers();
-  
-  const user = users.find(u => u.username === username);
-  if (!user) {
-    return res.status(404).json({ msg: 'User not found' });
+async function login(req, res) {
+  try {
+    const { username, password } = req.body;
+
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ msg: 'Invalid password' });
+    }
+
+    const token = jwt.sign({ username: user.username }, SECRET, { expiresIn: '1h' });
+
+    res.json({ msg: 'Login successful', token });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ msg: 'Server error' });
   }
-
-  const isMatch = bcrypt.compareSync(password, user.password);
-  if (!isMatch) {
-    return res.status(401).json({ msg: 'Invalid password' });
-  }
-
-  const token = jwt.sign({ username: user.username }, SECRET, { expiresIn: '1h' });
-
-  res.json({ msg: 'Login successful', token });
 }
-function logout(req,res){
+
+async function logout(req, res) {
   const token = req.headers['authorization'];
   if (!token) { 
     return res.status(401).json({ msg: 'No token provided' });
